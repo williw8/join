@@ -153,35 +153,47 @@ class JoinPlugin(object):
     if wx.ID_OK == chk:
       other_path = dialog.getOtherPath()
       join_type = dialog.getJoinType()
-      join_column = dialog.getJoinColumn()
-
+      join_idx = dialog.getJoinColumn()
+      join_label = table.getHeader()[join_idx]
       sfr = csvfile.SingleFileReader(other_path)
       other_table = sfr.load() 
+      other_join_idx = other_table.getHeaderIndex(join_label)
       memw = csvmemory.MemoryWriter()
-
+      new_header = []
+      for col in table.getHeader():
+        new_header.append(col)
+      idx = 0
+      for col in other_table.getHeader():
+        if idx != other_join_idx:
+          new_header.append(col)
+        idx += 1
+      memw.setHeader(new_header) 
+          
       if INNER_JOIN == join_type:
-        label = table.header[join_column]
-        other_idx = 0
-        for v in other_table.header:
-          if label == v:
-            break 
-          other_idx += 1
-        for row in table.get_iter():
-          value = table.get_value_from_row(label)
+        if -1 == join_idx or -1 == other_join_idx:
+          wx.MessageBox("Invalid join column",'Info',wx.OK|wx.ICON_INFORMATION)
+          return
+        table.reset()
+        for row in table.getIter():
           other_table.reset()
+          value = row[join_idx]
           new_row = row
-          for other_row in other_table.get_iter():
+
+          append = False
+          for other_row in other_table.getIter():
             try:
-              other_value = other_table.get_value_from_row(label)
+              other_value = other_row[other_join_idx] 
               if value == other_value:
+                append = True
                 idx = 0
                 for col in other_row:
-                  if idx != other_idx:
+                  if idx != other_join_idx:
                     new_row.append(col)
                   idx += 1
-                  break
+                break
             except csvdb.TableException as ex:
               pass
+          if append:
             memw.appendRow(new_row)
         
       path = utils.getTempFilename()
