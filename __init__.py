@@ -169,22 +169,40 @@ class JoinPlugin(object):
         idx += 1
       memw.setHeader(new_header) 
           
+      if -1 == join_idx or -1 == other_join_idx:
+        wx.MessageBox("Invalid join column",'Info',wx.OK|wx.ICON_INFORMATION)
+        return
+
       if INNER_JOIN == join_type:
-        if -1 == join_idx or -1 == other_join_idx:
-          wx.MessageBox("Invalid join column",'Info',wx.OK|wx.ICON_INFORMATION)
-          return
         table.reset()
         for row in table.getIter():
           other_table.reset()
           value = row[join_idx]
-          new_row = row
-
-          append = False
+          for other_row in other_table.getIter():
+            new_row = row[:]
+            try:
+              other_value = other_row[other_join_idx] 
+              if value == other_value:
+                idx = 0
+                for col in other_row:
+                  if idx != other_join_idx:
+                    new_row.append(col)
+                  idx += 1
+                memw.appendRow(new_row)
+            except csvdb.TableException as ex:
+              pass
+      elif LEFT_JOIN == join_type:
+        table.reset()
+        for row in table.getIter():
+          other_table.reset()
+          value = row[join_idx]
+          new_row = row[:]
+          match = False
           for other_row in other_table.getIter():
             try:
               other_value = other_row[other_join_idx] 
               if value == other_value:
-                append = True
+                match = True
                 idx = 0
                 for col in other_row:
                   if idx != other_join_idx:
@@ -193,9 +211,39 @@ class JoinPlugin(object):
                 break
             except csvdb.TableException as ex:
               pass
-          if append:
-            memw.appendRow(new_row)
-        
+          if False == match:
+            for i in range(len(other_table.getHeader())-1):
+              new_row.append('')
+          memw.appendRow(new_row)
+      elif RIGHT_JOIN == join_type:
+        other_table.reset()
+        for other_row in other_table.getIter():
+          table.reset()
+          other_value = other_row[other_join_idx]
+          new_row = list()
+          match = False
+          for row in table.getIter():
+            try:
+              value = row[join_idx] 
+              if value == other_value:
+                match = True
+                idx = 0
+                for col in row:
+                  if idx != other_join_idx:
+                    new_row.append(col)
+                  idx += 1
+                break
+            except csvdb.TableException as ex:
+              pass
+          if False == match:
+            for i in range(len(table.getHeader())-1):
+              new_row.append('')
+          for col in other_row:
+            new_row.append(col)
+          memw.appendRow(new_row)
+      elif FULL_JOIN == join_type:
+        pass
+            
       path = utils.getTempFilename()
       memw.save(path)
       self.parent_frame.addPage(path,delete_on_exit=True)
