@@ -47,7 +47,7 @@ class JoinDialog(wx.Dialog):
     hbox.AddSpacer(H_SPACER)
     hbox.Add(x)
     hbox.AddSpacer(H_SPACER)
-    self.other_path_ctrl = wx.TextCtrl(self,size=(250,wx.ID_ANY))
+    self.other_path_ctrl = wx.TextCtrl(self,size=(200,-1))
     self.other_path_ctrl.SetEditable(True)
     hbox.AddSpacer(H_SPACER)
     hbox.Add(self.other_path_ctrl)
