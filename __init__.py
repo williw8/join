@@ -29,6 +29,8 @@ INNER_JOIN = 0
 LEFT_JOIN = 1
 RIGHT_JOIN = 2
 
+OTHER_CSV_LABEL = 'Other CSV file'
+
 JOIN_NAMES = ['Inner','Outer Left','Outer Right']
 
 class JoinDialog(wx.Dialog):
@@ -46,7 +48,6 @@ class JoinDialog(wx.Dialog):
     self.join_column_ctrl = None
 
     self.initUI()
-    self.SetSize((320,240))
     self.SetTitle("Join")
 
 
@@ -57,14 +58,18 @@ class JoinDialog(wx.Dialog):
     self.path = v
 
   def initUI(self):
+
     vbox = wx.BoxSizer(wx.VERTICAL)
 
+    vbox.AddSpacer(V_SPACER)
+    vbox.AddSpacer(V_SPACER)
+
     hbox = wx.BoxSizer(wx.HORIZONTAL)
-    x = wx.StaticText(self,wx.ID_ANY,label="Other CSV File")
-    hbox.AddSpacer(H_SPACER)
+    x = wx.StaticText(self,wx.ID_ANY,label=OTHER_CSV_LABEL)
+    label_width = x.GetTextExtent(OTHER_CSV_LABEL)
     hbox.Add(x)
     hbox.AddSpacer(H_SPACER)
-    self.other_path_ctrl = wx.TextCtrl(self,size=(200,-1))
+    self.other_path_ctrl = wx.TextCtrl(self,size=(480,-1))
     self.other_path_ctrl.SetEditable(True)
     hbox.AddSpacer(H_SPACER)
     hbox.Add(self.other_path_ctrl)
@@ -76,42 +81,45 @@ class JoinDialog(wx.Dialog):
     vbox.Add(hbox);
     vbox.AddSpacer(V_SPACER)
 
-
     hbox = wx.BoxSizer(wx.HORIZONTAL)
-    x = wx.StaticText(self,wx.ID_ANY,label="Join Type")
+    hbox.AddSpacer(H_SPACER)
+    x = wx.StaticText(self,wx.ID_ANY,label="Join Type",size=label_width)
     hbox.Add(x)
     hbox.AddSpacer(H_SPACER)
     self.join_type_ctrl = wx.Choice(self,choices=JOIN_NAMES)
     self.join_type_ctrl.SetStringSelection(JOIN_NAMES[INNER_JOIN])
     hbox.Add(self.join_type_ctrl)
-    vbox.Add(hbox);
+    vbox.Add(hbox)
     vbox.AddSpacer(V_SPACER)
 
     hbox = wx.BoxSizer(wx.HORIZONTAL)
-    x = wx.StaticText(self,wx.ID_ANY,label="Join Column")
+    hbox.AddSpacer(H_SPACER)
+    x = wx.StaticText(self,wx.ID_ANY,label="Join Column",size=label_width)
     hbox.Add(x)
     hbox.AddSpacer(H_SPACER)
     self.join_column_ctrl = wx.Choice(self,choices=self.table.header)
     self.join_column_ctrl.SetStringSelection(self.table.header[0])
     hbox.Add(self.join_column_ctrl)
     vbox.Add(hbox);
+
     vbox.AddSpacer(V_SPACER)
 
     hbox = wx.BoxSizer(wx.HORIZONTAL)
     self.ok_button = wx.Button(self,wx.ID_OK)
+    self.ok_button.Bind(wx.EVT_BUTTON,self.onOK)
     hbox.AddSpacer(H_SPACER)
     hbox.Add(self.ok_button)
     hbox.AddSpacer(H_SPACER)
     self.cancel_button = wx.Button(self,wx.ID_CANCEL)
+    self.cancel_button.Bind(wx.EVT_BUTTON,self.onCancel)
     hbox.AddSpacer(H_SPACER)
     hbox.Add(self.cancel_button)
     hbox.AddSpacer(H_SPACER)
     vbox.Add(hbox)
 
-    self.ok_button.Bind(wx.EVT_BUTTON,self.onOK)
-    self.cancel_button.Bind(wx.EVT_BUTTON,self.onCancel)
+    vbox.AddSpacer(V_SPACER)
 
-    self.SetSizer(vbox)
+    self.SetSizerAndFit(vbox)
 
   def onOK(self,event):
     self.join_type = self.join_type_ctrl.GetCurrentSelection()
